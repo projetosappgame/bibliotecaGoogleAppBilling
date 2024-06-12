@@ -1,0 +1,52 @@
+//Primeiro, adicione a dependência no seu arquivo build.gradle
+dependencies {
+    ...
+    implementation 'com.android.billingclient:billing:4.0.0'
+    ...
+}
+
+//Em seguida, crie uma instância do BillingClient na sua atividade ou fragmento:
+import com.android.billingclient.api.*
+
+class MainActivity : AppCompatActivity() {
+    private lateinit var billingClient: BillingClient
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        billingClient = BillingClient.newBuilder(this)
+            .setListener(purchasesUpdatedListener)
+            .enablePendingPurchases()
+            .build()
+
+        billingClient.startConnection(object : BillingClientStateListener {
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    // O cliente de cobrança está pronto. Você pode consultar as compras aqui.
+                }
+            }
+
+            override fun onBillingServiceDisconnected() {
+                // Tente reiniciar a conexão na próxima solicitação ao Google Play chamando o método startConnection().
+            }
+        })
+    }
+
+    private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
+        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
+            for (purchase in purchases) {
+                handlePurchase(purchase)
+            }
+        } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
+            // Trate o cancelamento pelo usuário aqui.
+        } else {
+            // Trate outros códigos de erro desconhecidos.
+        }
+    }
+
+    fun handlePurchase(purchase: Purchase) {
+        // Aqui você pode tratar a compra concluída.
+    }
+}  
+
